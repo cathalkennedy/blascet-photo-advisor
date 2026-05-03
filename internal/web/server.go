@@ -11,23 +11,26 @@ import (
 	"time"
 
 	"github.com/cathal/blascet-photo-advisor/internal/db"
+	"github.com/cathal/blascet-photo-advisor/internal/job"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 // Server wraps the HTTP server and dependencies
 type Server struct {
-	router *chi.Mux
-	db     *db.DB
-	addr   string
+	router     *chi.Mux
+	db         *db.DB
+	addr       string
+	workerPool *job.WorkerPool
 }
 
 // New creates a new HTTP server
-func New(database *db.DB, addr string) *Server {
+func New(database *db.DB, workerPool *job.WorkerPool, addr string) *Server {
 	s := &Server{
-		router: chi.NewRouter(),
-		db:     database,
-		addr:   addr,
+		router:     chi.NewRouter(),
+		db:         database,
+		addr:       addr,
+		workerPool: workerPool,
 	}
 
 	s.setupMiddleware()

@@ -69,17 +69,35 @@ make all
 
 ## Current Status
 
-**Checkpoint 1 complete**: Project skeleton established
+**Checkpoint 4 complete**: Worker pool and job queue operational
 
-- ✅ Directory structure created
-- ✅ Go module initialised (github.com/cathal/blascet-photo-advisor)
-- ✅ Dependencies added
-- ✅ Stub main.go
-- ✅ Makefile with build, run, test, fmt targets
-- ✅ README, .gitignore
-- ✅ Initial git commit
+- ✅ Project skeleton with all dependencies
+- ✅ SQLite schema with migrations (jobs, images, tasks, watched_folders)
+- ✅ HTTP server with chi router
+- ✅ Dashboard with drag-drop and folder picker
+- ✅ Server-Sent Events for live job updates
+- ✅ Worker pool with configurable concurrency
+- ✅ Job state machine (queued → running → completed/failed)
+- ✅ Image processing stub (fake scores for now)
+- ✅ Event bus for real-time updates
+- ✅ Graceful shutdown handling
 
-**Next**: Data layer (SQLite schema, migrations, queries)
+**Working features:**
+- Upload images via drag-drop or folder picker
+- Jobs created with image records
+- Workers process images in background (2-5 second stub delay)
+- Live progress updates via SSE
+- Job and image status tracking
+- Dashboard shows recent jobs with progress
+
+**Next steps** (future sessions):
+- Watched folder implementation
+- Real inference client (LM Studio / llama.cpp integration)
+- Prompt templates and JSON schema validation
+- EXIF extraction and metadata
+- Image thumbnails
+- Results viewer with markdown rendering
+- XMP sidecar writing for Capture One
 
 ## Project Structure
 

@@ -7,13 +7,15 @@ import (
 	"path/filepath"
 
 	"github.com/cathal/blascet-photo-advisor/internal/db"
+	"github.com/cathal/blascet-photo-advisor/internal/job"
 	"github.com/cathal/blascet-photo-advisor/internal/web"
 )
 
 func main() {
 	var (
-		addr   = flag.String("addr", ":8080", "HTTP server address")
-		dbPath = flag.String("db", ".blascet-data/blascet.db", "SQLite database path")
+		addr        = flag.String("addr", ":8080", "HTTP server address")
+		dbPath      = flag.String("db", ".blascet-data/blascet.db", "SQLite database path")
+		concurrency = flag.Int("workers", 1, "Number of worker goroutines")
 	)
 	flag.Parse()
 
@@ -42,8 +44,13 @@ func main() {
 
 	slog.Info("database opened", "path", *dbPath)
 
+	// Create and start worker pool
+	workerPool := job.NewWorkerPool(database, *concurrency)
+	workerPool.Start()
+	defer workerPool.Stop()
+
 	// Create and start HTTP server
-	server := web.New(database, *addr)
+	server := web.New(database, workerPool, *addr)
 	if err := server.Start(); err != nil {
 		slog.Error("server stopped with error", "error", err)
 		os.Exit(1)

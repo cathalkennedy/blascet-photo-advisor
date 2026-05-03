@@ -6,10 +6,12 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"time"
 
+	"github.com/cathal/blascet-photo-advisor/internal/db"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -57,9 +59,40 @@ func (s *Server) handleUpload(w http.ResponseWriter, r *http.Request) {
 
 	slog.Info("received upload", "file_count", len(files))
 
-	// Placeholder response - actual job creation comes in checkpoint 4
+	// Create job
+	job, err := s.db.CreateJob(
+		db.SourceKindUpload,
+		"upload",
+		"llama-3.2-vision", // Default model for now
+		`["quality_rating","adjustment_plan","crop_suggestions"]`,
+		len(files),
+	)
+	if err != nil {
+		slog.Error("failed to create job", "error", err)
+		http.Error(w, "Failed to create job", http.StatusInternalServerError)
+		return
+	}
+
+	// Create image records
+	tmpDir := ".blascet-data/uploads"
+	os.MkdirAll(tmpDir, 0755)
+
+	for _, fileHeader := range files {
+		// For now, just store the original filename - actual file handling will come later
+		imagePath := filepath.Join(tmpDir, fileHeader.Filename)
+
+		_, err := s.db.CreateImage(job.ID, imagePath, fileHeader.Filename)
+		if err != nil {
+			slog.Error("failed to create image record", "error", err)
+			continue
+		}
+	}
+
+	slog.Info("job created", "job_id", job.ID, "images", len(files))
+
 	w.Header().Set("Content-Type", "text/html")
-	fmt.Fprintf(w, `<div class="upload-success">Received %d file(s). Job creation coming in checkpoint 4.</div>`, len(files))
+	fmt.Fprintf(w, `<div class="upload-success">Job #%d created with %d image(s). <a href="/jobs/%d">View job</a></div>`,
+		job.ID, len(files), job.ID)
 }
 
 func (s *Server) handleJobDetail(w http.ResponseWriter, r *http.Request) {
@@ -127,9 +160,12 @@ func (s *Server) handleJobEvents(w http.ResponseWriter, r *http.Request) {
 
 	slog.Info("SSE connection established", "job_id", id)
 
-	// Send heartbeat every 5 seconds
-	// Real job events will be wired up in checkpoint 4
-	ticker := time.NewTicker(5 * time.Second)
+	// Subscribe to job events
+	eventChan := s.workerPool.EventBus().Subscribe(id)
+	defer s.workerPool.EventBus().Unsubscribe(id, eventChan)
+
+	// Send heartbeat every 30 seconds
+	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
 	for {
@@ -138,12 +174,28 @@ func (s *Server) handleJobEvents(w http.ResponseWriter, r *http.Request) {
 			slog.Info("SSE connection closed", "job_id", id)
 			return
 
+		case event := <-eventChan:
+			// Send job event
+			eventData := map[string]interface{}{
+				"type":     string(event.Type),
+				"job_id":   event.JobID,
+				"image_id": event.ImageID,
+			}
+			for k, v := range event.Data {
+				eventData[k] = v
+			}
+
+			data, _ := json.Marshal(eventData)
+			fmt.Fprintf(w, "data: %s\n\n", data)
+			flusher.Flush()
+
 		case t := <-ticker.C:
-			event := map[string]interface{}{
+			// Send heartbeat
+			heartbeat := map[string]interface{}{
 				"type":      "heartbeat",
 				"timestamp": t.Format(time.RFC3339),
 			}
-			data, _ := json.Marshal(event)
+			data, _ := json.Marshal(heartbeat)
 			fmt.Fprintf(w, "data: %s\n\n", data)
 			flusher.Flush()
 		}

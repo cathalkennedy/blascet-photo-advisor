@@ -1,0 +1,32 @@
+# Blascet Photo Advisor Configuration Example
+
+[server]
+# HTTP server address
+addr = ":8080"
+
+[database]
+# SQLite database path
+path = ".blascet-data/blascet.db"
+
+[worker]
+# Number of concurrent worker goroutines
+concurrency = 1
+
+[model]
+# Default model ID for inference
+default_model = "llama-3.2-vision"
+
+# OpenAI-compatible inference endpoint
+inference_endpoint = "http://localhost:1234/v1/chat/completions"
+
+[tasks]
+# Default tasks to run for each image
+# Options: quality_rating, adjustment_plan, crop_suggestions
+default_tasks = ["quality_rating", "adjustment_plan", "crop_suggestions"]
+
+[storage]
+# Directory for uploaded images
+uploads_dir = ".blascet-data/uploads"
+
+# Directory for thumbnails
+thumbnails_dir = ".blascet-data/thumbnails"
