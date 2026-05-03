@@ -1,0 +1,320 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    colour: #333;
+    background: #f5f5f5;
+}
+
+/* Header */
+header {
+    background: #2c3e50;
+    colour: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+header nav h1 {
+    font-size: 1.5rem;
+}
+
+header nav h1 a {
+    colour: white;
+    text-decoration: none;
+}
+
+/* Main content */
+main {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+/* Dashboard */
+.dashboard {
+    display: grid;
+    gap: 2rem;
+}
+
+/* Upload section */
+.upload-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.upload-section h2 {
+    margin-bottom: 1.5rem;
+    colour: #2c3e50;
+}
+
+/* Drop zone */
+.upload-zone {
+    border: 3px dashed #cbd5e0;
+    border-radius: 8px;
+    padding: 3rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f7fafc;
+}
+
+.upload-zone:hover,
+.upload-zone.drag-over {
+    border-colour: #4299e1;
+    background: #ebf8ff;
+}
+
+.drop-zone-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.drop-zone-text {
+    font-size: 1.25rem;
+    colour: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.drop-zone-subtext {
+    colour: #718096;
+}
+
+/* Folder picker */
+.folder-picker {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.folder-button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: #4299e1;
+    colour: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    font-weight: 500;
+}
+
+.folder-button:hover {
+    background: #3182ce;
+}
+
+/* Upload result */
+#upload-result {
+    margin-top: 1rem;
+}
+
+.upload-success {
+    padding: 1rem;
+    background: #c6f6d5;
+    colour: #22543d;
+    border-radius: 6px;
+    border-left: 4px solid #38a169;
+}
+
+.upload-error {
+    padding: 1rem;
+    background: #fed7d7;
+    colour: #742a2a;
+    border-radius: 6px;
+    border-left: 4px solid #e53e3e;
+}
+
+/* Jobs section */
+.jobs-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.jobs-section h2 {
+    margin-bottom: 1.5rem;
+    colour: #2c3e50;
+}
+
+.jobs-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.job-card {
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    transition: box-shadow 0.3s ease;
+}
+
+.job-card:hover {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.job-header h3 {
+    font-size: 1.25rem;
+}
+
+.job-header h3 a {
+    colour: #2c3e50;
+    text-decoration: none;
+}
+
+.job-header h3 a:hover {
+    colour: #4299e1;
+}
+
+.job-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-queued {
+    background: #bee3f8;
+    colour: #2c5282;
+}
+
+.status-running {
+    background: #fefcbf;
+    colour: #744210;
+}
+
+.status-completed {
+    background: #c6f6d5;
+    colour: #22543d;
+}
+
+.status-failed {
+    background: #fed7d7;
+    colour: #742a2a;
+}
+
+.job-details p {
+    margin-bottom: 0.5rem;
+    colour: #4a5568;
+}
+
+.job-failures {
+    colour: #e53e3e;
+}
+
+.job-time {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    colour: #a0aec0;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    colour: #a0aec0;
+    padding: 2rem;
+    font-style: italic;
+}
+
+/* Job detail page */
+.job-detail {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.job-detail .job-header {
+    margin-bottom: 2rem;
+}
+
+.job-info {
+    margin-bottom: 2rem;
+}
+
+.job-info h3 {
+    margin-bottom: 1rem;
+    colour: #2c3e50;
+}
+
+.job-info dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1rem;
+}
+
+.job-info dt {
+    font-weight: 600;
+    colour: #4a5568;
+}
+
+.job-info dd {
+    colour: #2d3748;
+}
+
+/* Images section */
+.images-section h3 {
+    margin-bottom: 1rem;
+    colour: #2c3e50;
+}
+
+.images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.image-card {
+    padding: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.image-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.image-header h4 {
+    font-size: 1rem;
+    colour: #2d3748;
+    word-break: break-word;
+}
+
+.image-status {
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.image-details p {
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    colour: #4a5568;
+}
+
+.image-details .error {
+    colour: #e53e3e;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 2rem;
+    colour: #a0aec0;
+    margin-top: 4rem;
+}

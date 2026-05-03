@@ -1,0 +1,135 @@
+{{define "content"}}
+<div class="dashboard">
+    <section class="upload-section">
+        <h2>Add Images</h2>
+
+        <!-- Drag and Drop Zone -->
+        <div class="upload-zone"
+             id="drop-zone"
+             hx-encoding="multipart/form-data"
+             hx-post="/upload"
+             hx-target="#upload-result"
+             hx-swap="innerHTML">
+            <input type="file"
+                   id="file-input"
+                   name="files"
+                   multiple
+                   accept="image/*"
+                   style="display: none;">
+            <div class="drop-zone-content">
+                <p class="drop-zone-icon">📸</p>
+                <p class="drop-zone-text">Drag and drop images here</p>
+                <p class="drop-zone-subtext">or click to browse</p>
+            </div>
+        </div>
+
+        <!-- Folder Picker -->
+        <div class="folder-picker">
+            <label for="folder-input" class="folder-button">Choose Folder</label>
+            <input type="file"
+                   id="folder-input"
+                   name="files"
+                   webkitdirectory
+                   directory
+                   multiple
+                   style="display: none;">
+        </div>
+
+        <!-- Upload Result -->
+        <div id="upload-result"></div>
+    </section>
+
+    <section class="jobs-section">
+        <h2>Recent Jobs</h2>
+        {{if .Jobs}}
+        <div class="jobs-list">
+            {{range .Jobs}}
+            <div class="job-card">
+                <div class="job-header">
+                    <h3><a href="/jobs/{{.ID}}">Job #{{.ID}}</a></h3>
+                    <span class="job-status status-{{.Status}}">{{.Status}}</span>
+                </div>
+                <div class="job-details">
+                    <p><strong>Source:</strong> {{.SourceKind}} - {{.SourcePath}}</p>
+                    <p><strong>Model:</strong> {{.ModelID}}</p>
+                    <p><strong>Progress:</strong> {{.CompletedImages}}/{{.TotalImages}} images</p>
+                    {{if gt .FailedImages 0}}
+                    <p class="job-failures"><strong>Failed:</strong> {{.FailedImages}}</p>
+                    {{end}}
+                    <p class="job-time">{{.CreatedAt.Format "2006-01-02 15:04"}}</p>
+                </div>
+            </div>
+            {{end}}
+        </div>
+        {{else}}
+        <p class="empty-state">No jobs yet. Upload some images to get started.</p>
+        {{end}}
+    </section>
+</div>
+
+<script>
+// Drag and drop handling
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const folderInput = document.getElementById('folder-input');
+
+// Click to browse
+dropZone.addEventListener('click', () => {
+    fileInput.click();
+});
+
+// Handle file selection
+fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        uploadFiles(e.target.files);
+    }
+});
+
+// Handle folder selection
+folderInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        uploadFiles(e.target.files);
+    }
+});
+
+// Drag and drop events
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('drag-over');
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+
+    if (e.dataTransfer.files.length > 0) {
+        uploadFiles(e.dataTransfer.files);
+    }
+});
+
+function uploadFiles(files) {
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+    }
+
+    fetch('/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById('upload-result').innerHTML = html;
+    })
+    .catch(error => {
+        console.error('Upload failed:', error);
+        document.getElementById('upload-result').innerHTML =
+            '<div class="upload-error">Upload failed. Please try again.</div>';
+    });
+}
+</script>
+{{end}}

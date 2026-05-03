@@ -1,0 +1,86 @@
+{{define "content"}}
+<div class="job-detail">
+    <div class="job-header">
+        <h2>Job #{{.Job.ID}}</h2>
+        <span class="job-status status-{{.Job.Status}}">{{.Job.Status}}</span>
+    </div>
+
+    <section class="job-info">
+        <h3>Details</h3>
+        <dl>
+            <dt>Source Kind:</dt>
+            <dd>{{.Job.SourceKind}}</dd>
+
+            <dt>Source Path:</dt>
+            <dd>{{.Job.SourcePath}}</dd>
+
+            <dt>Model ID:</dt>
+            <dd>{{.Job.ModelID}}</dd>
+
+            <dt>Tasks Requested:</dt>
+            <dd>{{.Job.TasksRequested}}</dd>
+
+            <dt>Created:</dt>
+            <dd>{{.Job.CreatedAt.Format "2006-01-02 15:04:05"}}</dd>
+
+            <dt>Progress:</dt>
+            <dd>{{.Job.CompletedImages}}/{{.Job.TotalImages}} completed, {{.Job.FailedImages}} failed</dd>
+        </dl>
+    </section>
+
+    <section class="images-section">
+        <h3>Images ({{len .Images}})</h3>
+        {{if .Images}}
+        <div class="images-grid">
+            {{range .Images}}
+            <div class="image-card">
+                <div class="image-header">
+                    <h4>{{.OriginalFilename}}</h4>
+                    <span class="image-status status-{{.Status}}">{{.Status}}</span>
+                </div>
+                <div class="image-details">
+                    {{if .CompositeScore}}
+                    <p><strong>Score:</strong> {{printf "%.2f" .CompositeScore}}</p>
+                    {{end}}
+                    {{if .Verdict}}
+                    <p><strong>Verdict:</strong> {{.Verdict}}</p>
+                    {{end}}
+                    {{if .Error}}
+                    <p class="error"><strong>Error:</strong> {{.Error}}</p>
+                    {{end}}
+                </div>
+            </div>
+            {{end}}
+        </div>
+        {{else}}
+        <p class="empty-state">No images in this job yet.</p>
+        {{end}}
+    </section>
+
+    <!-- SSE connection for live updates -->
+    <div id="job-events"
+         hx-get="/jobs/{{.Job.ID}}/events"
+         hx-trigger="load"
+         hx-swap="none">
+    </div>
+</div>
+
+<script>
+// SSE connection for live updates (heartbeat for now, real events in checkpoint 4)
+const eventSource = new EventSource('/jobs/{{.Job.ID}}/events');
+
+eventSource.addEventListener('message', (e) => {
+    const data = JSON.parse(e.data);
+    console.log('SSE event:', data);
+
+    // Real job status updates will be handled here in checkpoint 4
+    if (data.type === 'heartbeat') {
+        console.log('Heartbeat received at', data.timestamp);
+    }
+});
+
+eventSource.addEventListener('error', (e) => {
+    console.error('SSE error:', e);
+});
+</script>
+{{end}}
