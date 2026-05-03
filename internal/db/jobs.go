@@ -103,15 +103,16 @@ func (db *DB) UpdateJobCounts(id int64, completedImages, failedImages int) error
 	return nil
 }
 
-// GetQueuedJobs retrieves all jobs with status 'queued'
+// GetQueuedJobs retrieves all jobs with status 'queued' or 'running'
+// (jobs that are active and may have unprocessed images)
 func (db *DB) GetQueuedJobs() ([]*Job, error) {
 	rows, err := db.Query(`
 		SELECT id, created_at, status, source_kind, source_path, model_id,
 		       tasks_requested, total_images, completed_images, failed_images
 		FROM jobs
-		WHERE status = ?
+		WHERE status IN (?, ?)
 		ORDER BY created_at ASC
-	`, JobStatusQueued)
+	`, JobStatusQueued, JobStatusRunning)
 	if err != nil {
 		return nil, fmt.Errorf("querying queued jobs: %w", err)
 	}

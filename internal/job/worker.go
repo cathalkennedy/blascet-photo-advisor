@@ -78,12 +78,16 @@ func (wp *WorkerPool) worker(id int) {
 			slog.Info("worker stopping", "worker_id", id)
 			return
 
-		case <-ticker.C:
+		case t := <-ticker.C:
+			slog.Debug("worker tick", "worker_id", id, "time", t.Format(time.RFC3339))
 			if err := wp.processNextImage(); err != nil {
 				if err != ErrNoWork {
 					slog.Error("worker error", "worker_id", id, "error", err)
+				} else {
+					slog.Debug("no work available", "worker_id", id)
 				}
 			}
+			slog.Debug("worker tick complete, looping", "worker_id", id)
 		}
 	}
 }
@@ -92,6 +96,8 @@ var ErrNoWork = fmt.Errorf("no work available")
 
 // processNextImage finds and processes the next queued image
 func (wp *WorkerPool) processNextImage() error {
+	slog.Debug("claiming next image: querying for active jobs")
+
 	// Find a queued job
 	queuedJobs, err := wp.db.GetQueuedJobs()
 	if err != nil {
@@ -99,10 +105,12 @@ func (wp *WorkerPool) processNextImage() error {
 	}
 
 	if len(queuedJobs) == 0 {
+		slog.Debug("no active jobs found")
 		return ErrNoWork
 	}
 
 	job := queuedJobs[0]
+	slog.Debug("found active job", "job_id", job.ID, "job_status", job.Status)
 
 	// Mark job as running if it's still queued
 	if job.Status == db.JobStatusQueued {
@@ -123,6 +131,7 @@ func (wp *WorkerPool) processNextImage() error {
 	}
 
 	if len(images) == 0 {
+		slog.Info("job has no queued images, marking as completed", "job_id", job.ID)
 		// No more images, mark job as completed
 		if err := wp.db.UpdateJobStatus(job.ID, db.JobStatusCompleted); err != nil {
 			return fmt.Errorf("updating job status: %w", err)
@@ -137,6 +146,7 @@ func (wp *WorkerPool) processNextImage() error {
 
 	// Process the first queued image
 	image := images[0]
+	slog.Debug("claimed image for processing", "job_id", job.ID, "image_id", image.ID, "filename", image.OriginalFilename)
 	return wp.processImage(job, image)
 }
 
@@ -193,6 +203,7 @@ func (wp *WorkerPool) processImage(job *db.Job, image *db.Image) error {
 
 	slog.Info("image processed", "job_id", job.ID, "image_id", image.ID, "score", compositeScore, "verdict", verdict)
 
+	slog.Debug("updating job progress counts", "job_id", job.ID)
 	// Update job counts
 	completed, failed := wp.countJobProgress(job.ID)
 	if err := wp.db.UpdateJobCounts(job.ID, completed, failed); err != nil {
@@ -227,8 +238,11 @@ func (wp *WorkerPool) processImage(job *db.Job, image *db.Image) error {
 		})
 
 		slog.Info("job completed", "job_id", job.ID, "status", finalStatus, "completed", completed, "failed", failed)
+	} else {
+		slog.Debug("job still in progress", "job_id", job.ID, "completed", completed, "failed", failed, "total", job.TotalImages)
 	}
 
+	slog.Debug("processImage complete", "job_id", job.ID, "image_id", image.ID)
 	return nil
 }
 
