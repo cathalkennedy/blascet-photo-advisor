@@ -21,15 +21,17 @@ func init() {
 	var err error
 	templates, err = template.ParseGlob("web/templates/*.html")
 	if err != nil {
-		slog.Warn("failed to parse templates", "error", err)
+		slog.Error("FATAL: failed to parse templates", "error", err)
+		panic(fmt.Sprintf("template parsing failed: %v", err))
 	}
+	slog.Info("templates loaded successfully")
 }
 
 func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 	jobs, err := s.db.ListJobs(50)
 	if err != nil {
 		slog.Error("failed to list jobs", "error", err)
-		http.Error(w, "Failed to load jobs", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to load jobs: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -39,9 +41,11 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		Jobs: jobs,
 	}
 
-	if err := templates.ExecuteTemplate(w, "dashboard.html", data); err != nil {
-		slog.Error("failed to render dashboard", "error", err)
-		http.Error(w, "Failed to render page", http.StatusInternalServerError)
+	if err := templates.ExecuteTemplate(w, "dashboard", data); err != nil {
+		slog.Error("failed to render dashboard template", "error", err)
+		// Template execution already wrote to response, can't use http.Error
+		// Write error message directly
+		fmt.Fprintf(w, "\n\n<!-- Template error: %v -->", err)
 	}
 }
 
@@ -106,14 +110,14 @@ func (s *Server) handleJobDetail(w http.ResponseWriter, r *http.Request) {
 	job, err := s.db.GetJob(id)
 	if err != nil {
 		slog.Error("failed to get job", "id", id, "error", err)
-		http.Error(w, "Job not found", http.StatusNotFound)
+		http.Error(w, fmt.Sprintf("Job not found: %v", err), http.StatusNotFound)
 		return
 	}
 
 	images, err := s.db.ListImagesByJob(id)
 	if err != nil {
 		slog.Error("failed to list images", "job_id", id, "error", err)
-		http.Error(w, "Failed to load images", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to load images: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -125,9 +129,11 @@ func (s *Server) handleJobDetail(w http.ResponseWriter, r *http.Request) {
 		Images: images,
 	}
 
-	if err := templates.ExecuteTemplate(w, "job.html", data); err != nil {
-		slog.Error("failed to render job detail", "error", err)
-		http.Error(w, "Failed to render page", http.StatusInternalServerError)
+	if err := templates.ExecuteTemplate(w, "job", data); err != nil {
+		slog.Error("failed to render job detail template", "error", err)
+		// Template execution already wrote to response, can't use http.Error
+		// Write error message directly
+		fmt.Fprintf(w, "\n\n<!-- Template error: %v -->", err)
 	}
 }
 
