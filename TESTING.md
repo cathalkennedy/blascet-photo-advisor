@@ -1,29 +1,38 @@
 # Initial scaffold test results — 2026-05-03
 
-## Passing
-- `make build` succeeds
-- `make run` starts the server on :8080
-- `make test`: 9/9 tests pass (data layer)
-- `/healthz` returns 200
-- All four checkpoints' commits present in git log
+## All four checkpoints verified working
 
-## Known issue
-- GET / returns HTTP 200 with only 1 byte of body — template not
-  rendering. Server logs show no error (likely a swallowed
-  template.Execute error). Needs Claude Code to:
-  1. Find the dashboard handler in internal/web/
-  2. Check template loading path (embed vs filesystem)
-  3. Add proper error logging around template execution
-  4. Fix the underlying rendering bug
+### Checkpoint 1 — skeleton
+- `make build`, `make run`, `make test`, `make fmt` all work
+- Initial commit present, .gitignore correct
+- Module path: github.com/cathal/blascet-photo-advisor
 
-## Not yet tested (blocked by template issue)
-- Drag-drop upload flow
-- Folder picker
-- SSE live updates
-- End-to-end fake job processing
+### Checkpoint 2 — data layer
+- 9/9 tests pass
+- Migrations apply cleanly and are idempotent
+- Job, image, task, watched_folder CRUD all verified
 
-## Next session
-- Fix template rendering (above)
-- Then port real prompts and inference client from Python pipeline
+### Checkpoint 3 — HTTP server
+- Dashboard renders correctly (after template fix this evening)
+- /healthz returns 200
+- SSE connections establish, hold open, and close cleanly
+- Static assets serve
 
+### Checkpoint 4 — job queue + worker
+- Drag-drop upload accepted (3 images, job_id=2)
+- Worker picked up images from queue
+- Stub processor assigned scores and verdicts
+- Results written to SQLite
+- SSE delivered status updates to the dashboard live
 
+## Bug fixed during testing
+- GET / was returning 200 with 1-byte body. Cause: template.Execute
+  errors were being silently swallowed. Fixed by adding proper error
+  logging around template execution sites, plus the underlying
+  rendering issue.
+
+## Ready for next session
+- Port prompts from Python pipeline (photo-rate, photo-eval, crop-eval)
+- Wire inference client to OpenAI-compatible endpoint
+- Replace stub worker with real model calls
+- Add EXIF extraction and injection
