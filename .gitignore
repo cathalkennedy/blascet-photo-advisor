@@ -1,0 +1,41 @@
+# Binaries
+blascet-photo-advisor
+bpa
+
+# Data directory
+.blascet-data/
+
+# SQLite files
+*.db
+*.db-wal
+*.db-shm
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+
+# Environment files
+.env
+.env.local
